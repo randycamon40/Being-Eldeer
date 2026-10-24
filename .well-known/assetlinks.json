@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.randev.beingeldeer",
+      "sha256_cert_fingerprints": [
+        "A9:24:FD:A7:3D:5E:6A:91:62:86:2C:D2:AD:5D:D1:0E:FE:5A:FD:F3:AA:17:7B:62:7E:28:4E:4F:84:8F:2D:16"
+      ]
+    }
+  }
+]
