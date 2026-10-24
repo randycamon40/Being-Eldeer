@@ -5,7 +5,7 @@
  * - skipWaiting + claim   => SW baru langsung aktif
  * - controllerchange di index.html => reload otomatis
  */
-const CACHE = 'kb-v1.0.0';
+const CACHE = 'kb-v1.0.1';
 const SHELL = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', (e) => {
