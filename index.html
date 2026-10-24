@@ -144,6 +144,7 @@ function chat(){
     const meta=`<div class="text-[10px] mu mt-1 flex gap-2 items-center px-1">${time}<button onclick="A.react('${x.id}',${!x.r?.[me.slot]})" style="color:${x.r?.[me.slot]?'#e5484d':'inherit'}">${rx?'❤️':'♡'}</button>${mine?`<button onclick="A.delMsg('${x.id}')">${ic('trash',12)}</button>`:''}</div>`;
     const body=x.letter?`<div class="bub" style="background:#fff7e0;color:#5a4320;border:1.5px dashed #d9b45a"><b class="text-xs">💌 Surat dari ${esc(C[x.from]?.name)}</b><p class="whitespace-pre-wrap mt-1" style="font-family:Fraunces,serif;font-style:italic">${esc(x.txt)}</p></div>`
      :x.voice?`<div class="bub ${mine?'me':'ot'}"><audio controls src="${x.voice}" class="h-10 w-48 max-w-full"></audio></div>`
+     :x.sticker?`<div class="bub ${mine?'me':'ot'} !bg-transparent !p-0 !border-none !shadow-none"><img src="${x.sticker}" class="w-32 h-32 object-contain drop-shadow-md"></div>`
      :`<div class="bub ${mine?'me':'ot'}">${esc(x.txt)}${x.tag?`<div class="text-[10px] opacity-80 font-bold mt-1">#${esc(x.tag)}</div>`:''}</div>`;
     return `<div class="flex ${mine?'justify-end':'justify-start'} items-end gap-1.5 mb-3">${!mine?`<div class="mb-5">${av(C[x.from],28)}</div>`:''}<div class="max-w-[78%] flex flex-col ${mine?'items-end':'items-start'}">${body}${meta}</div></div>`}).join('');
   return `<div class="flex items-center justify-between mb-3"><h1 class="dsp text-3xl">Chat</h1><button class="ch" onclick="A.srch()">${ic(S.sr?'x':'search',16)}</button></div>
@@ -151,7 +152,8 @@ function chat(){
   <div id="chat-list" class="ns overflow-y-auto px-1" style="height:calc(100dvh - ${S.sr?330:280}px)">${n||'<div class="text-center mu mt-10"><div class="text-5xl mb-2 fl">💬</div>'+(q?'Tidak ada pesan yang cocok.':'Belum ada chat. Sapa doi dulu!')+'</div>'}</div>
   <div class="fixed left-1/2 -translate-x-1/2 w-[calc(100%-24px)] max-w-[406px] z-10" style="bottom:86px">
    <div class="flex gap-2 mb-2 overflow-x-auto ns">${[['☀️ Pagi',"Good morning sayangkuuu ☀️"],['🌙 Malam','Good night sayang, mimpi indah ya 🌙'],['🥺 Kangen','Kangen bangettt 🥺']].map(([l,t])=>`<button class="ch shrink-0" onclick="A.gm('${t}')">${l}</button>`).join('')}<button class="ch shrink-0" onclick="A.letter()">💌 Surat</button>${['','penting','lucu','kangen'].map(t=>`<button class="ch shrink-0 ${(S.tag||'')==t?'on':''}" onclick="A.tag('${t}')">${t?'#'+t:'biasa'}</button>`).join('')}</div>
-   <div class="c !p-2 !mb-0 flex gap-2 items-center" style="box-shadow:0 8px 24px #0002"><button id="rec-btn" class="p-2" onclick="A.toggleRec()" style="color:var(--a)">${ic('mic',22)}</button><input id="msg" class="flex-1 bg-transparent outline-none px-1" placeholder="Ketik pesan..." onkeydown="if(event.key==='Enter')A.msg()"><button id="send-btn" class="b !p-3 !rounded-full" onclick="A.msg()">${ic('send',18)}</button></div></div>`}
+   ${S.st?`<div class="c !mb-2 !p-2 overflow-x-auto flex gap-2 ns shadow-sm" style="max-height:100px;background:var(--s)">${STICKERS.map(s=>`<img src="${s}" class="w-14 h-14 object-contain cursor-pointer hover:scale-110 transition" onclick="A.sendSticker('${s}')">`).join('')}</div>`:''}
+   <div class="c !p-2 !mb-0 flex gap-2 items-center" style="box-shadow:0 8px 24px #0002"><button class="p-2 text-xl" onclick="A.toggleStickers()">😀</button><button id="rec-btn" class="p-2" onclick="A.toggleRec()" style="color:var(--a)">${ic('mic',22)}</button><input id="msg" class="flex-1 bg-transparent outline-none px-1" placeholder="Ketik pesan..." onkeydown="if(event.key==='Enter')A.msg()"><button id="send-btn" class="b !p-3 !rounded-full" onclick="A.msg()">${ic('send',18)}</button></div></div>`}
 function mem(){
   let b=seg('mem',[['gal','Galeri'],['cap','Kapsul'],['wl','Wishlist']]);
   if(S.mem=='gal'){
@@ -177,6 +179,13 @@ const TRUTH=['Kapan terakhir kamu nangis gara-gara kangen aku?','Hal apa dari ak
 const DARE=['Kirim voice note nyanyi lagu favorit kita','Kirim selfie muka jelek terbaik','Bilang "aku sayang kamu" pakai 3 bahasa','Video call sambil tutup mata 1 menit'];
 const SPIN=['Video call tidur bareng 😴','Nonton film barengan 🎬','Masak menu sama 🍳','Main game bareng 🎮','Voice note curhat 🎙️','Kirim foto outfit hari ini 👗'];
 const GOMBAL=['Kamu itu kayak kopi, bikin aku melek seharian mikirin kamu.','Aku nggak butuh Google, karena semua yang aku cari udah ada di kamu.','Kalau kamu jadi pelajaran, aku mau remedial terus biar ketemu kamu tiap hari.','Aku nggak butuh kembang api, cukup lihat senyum kamu aja udah bikin hatiku meledak.','Kamu itu ibarat wifi, sinyalnya selalu nyangkut di hatiku.'];
+// ⚠️ GANTI URL DI BAWAH INI DENGAN LINK GAMBAR DARI GITHUB KAMU
+const STICKERS=[
+  'https://raw.githubusercontent.com/username/repo/main/images/stiker1.png',
+  'https://raw.githubusercontent.com/username/repo/main/images/stiker2.png',
+  'https://raw.githubusercontent.com/username/repo/main/images/stiker3.png',
+  'https://raw.githubusercontent.com/username/repo/main/images/stiker4.png'
+];
 const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 const eq=x=>x.g.toLowerCase().trim()==x.a.toLowerCase().trim();
 function play(){
@@ -285,7 +294,7 @@ Object.assign(A,{
       setTimeout(()=>{if(window.mediaRec&&window.mediaRec.state=='recording'){toast('Batas maksimal 15 detik ⏱️');window.mediaRec.stop()}},15000)
     }catch(e){toast('Mikrofon ditolak/gagal 🥺')}},
   resetRecUI:()=>{window.mediaRec=null;render()},
-  msg:async()=>{const t=$('#msg').value.trim();if(!t)return;$('#msg').value='';await add('notes',{txt:t,tag:S.tag||''})},
+  toggleStickers:()=>{S.st=!S.st;render()},sendSticker:async url=>{await add('notes',{sticker:url,txt:'Stiker'});S.st=false;render()},msg:async()=>{const t=$('#msg').value.trim();if(!t)return;$('#msg').value='';await add('notes',{txt:t,tag:S.tag||''})},
   delMsg:async id=>{if(confirm('Hapus pesan ini? 🗑️'))await deleteDoc(doc(db,'couples',cid,'notes',id))},
   gm:async t=>{await add('notes',{txt:t,gm:1});toast('Terkirim! 🔥')},
   letter:async()=>{const t=prompt('Tulis surat panjangmu 💌');if(t)await add('notes',{txt:t,letter:1})},
