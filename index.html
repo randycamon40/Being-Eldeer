@@ -185,7 +185,7 @@ async function loadStickers() {
     // ⚠️ GANTI 'username' dan 'repo' DI BAWAH INI DENGAN PUNYAMU
     const repoUser = 'randycamon40'; // Contoh: randycamon40
     const repoName = 'Being-Eldeer'; // Ganti dengan nama repo GitHub kamu (tanpa .git)
-    const res = await fetch(`https://api.github.com/repos/${repoUser}/${repoName}/contents/images`);
+    const res = await fetch(`https://api.github.com/repos/${repoUser}/${repoName}/contents/Images`);
     const files = await res.json();
     if (Array.isArray(files)) {
       STICKERS = files
