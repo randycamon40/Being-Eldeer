@@ -179,13 +179,24 @@ const TRUTH=['Kapan terakhir kamu nangis gara-gara kangen aku?','Hal apa dari ak
 const DARE=['Kirim voice note nyanyi lagu favorit kita','Kirim selfie muka jelek terbaik','Bilang "aku sayang kamu" pakai 3 bahasa','Video call sambil tutup mata 1 menit'];
 const SPIN=['Video call tidur bareng 😴','Nonton film barengan 🎬','Masak menu sama 🍳','Main game bareng 🎮','Voice note curhat 🎙️','Kirim foto outfit hari ini 👗'];
 const GOMBAL=['Kamu itu kayak kopi, bikin aku melek seharian mikirin kamu.','Aku nggak butuh Google, karena semua yang aku cari udah ada di kamu.','Kalau kamu jadi pelajaran, aku mau remedial terus biar ketemu kamu tiap hari.','Aku nggak butuh kembang api, cukup lihat senyum kamu aja udah bikin hatiku meledak.','Kamu itu ibarat wifi, sinyalnya selalu nyangkut di hatiku.'];
-// ⚠️ GANTI URL DI BAWAH INI DENGAN LINK GAMBAR DARI GITHUB KAMU
-const STICKERS=[
-  'https://raw.githubusercontent.com/username/repo/main/images/stiker1.png',
-  'https://raw.githubusercontent.com/username/repo/main/images/stiker2.png',
-  'https://raw.githubusercontent.com/username/repo/main/images/stiker3.png',
-  'https://raw.githubusercontent.com/username/repo/main/images/stiker4.png'
-];
+let STICKERS = [];
+async function loadStickers() {
+  try {
+    // ⚠️ GANTI 'username' dan 'repo' DI BAWAH INI DENGAN PUNYAMU
+    const repoUser = 'randycamon40'; // Contoh: randycamon40
+    const repoName = 'Being-Eldeer'; // Ganti dengan nama repo GitHub kamu (tanpa .git)
+    const res = await fetch(`https://api.github.com/repos/${repoUser}/${repoName}/contents/images`);
+    const files = await res.json();
+    if (Array.isArray(files)) {
+      STICKERS = files
+        .filter(f => f.name.match(/\.(png|webp|jpg|jpeg|gif)$/i))
+        .map(f => f.download_url);
+      render();
+    }
+  } catch (e) {
+    console.log('Gagal load stiker dari GitHub', e);
+  }
+}
 const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 const eq=x=>x.g.toLowerCase().trim()==x.a.toLowerCase().trim();
 function play(){
@@ -353,7 +364,7 @@ Object.assign(A,{
   reset:()=>{if(confirm('Yakin reset? Kamu bakal keluar dari couple ini (data di Firebase tetap ada).')){localStorage.clear();location.reload()}}
 });
 if(ls('kb_t'))document.body.dataset.t=ls('kb_t');if(ls('kb_d'))document.body.classList.add('dark');applyAccent();updateThemeColor();setTimeout(askNotif, 5000);
-if(me&&cid&&db)listen();render();
+if(me&&cid&&db)listen();render();loadStickers();
 const updatePresence=()=>{if(me&&cid&&db)updateDoc(cref(),{[me.slot+'.lastActive']:Date.now()}).catch(()=>{})};
 updatePresence();setInterval(updatePresence,60000);
 setInterval(()=>{if(!document.activeElement?.matches('input,textarea'))render()},60000);
