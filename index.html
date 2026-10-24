@@ -50,7 +50,7 @@ input[type=checkbox]{accent-color:var(--a);width:1.2rem;height:1.2rem}
 <div id="toasts" class="fixed top-3 inset-x-0 z-50 flex flex-col items-center gap-2 pointer-events-none"></div>
 <script type="module">
 import {initializeApp} from "firebase/app";
-import {getFirestore,doc,updateDoc,getDocs,addDoc,deleteDoc,collection,query,where,orderBy,onSnapshot} from "firebase/firestore";
+import {getFirestore,doc,updateDoc,getDocs,addDoc,deleteDoc,collection,query,where,orderBy,onSnapshot,limit} from "firebase/firestore";
 const $=s=>document.querySelector(s),ls=(k,v)=>v===undefined?JSON.parse(localStorage.getItem(k)||'null'):localStorage.setItem(k,JSON.stringify(v));
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const kb=n=>n>1e6?(n/1e6).toFixed(1)+'MB':Math.round(n/1e3)+'KB';
@@ -59,13 +59,13 @@ function toast(t){const e=document.createElement('div');e.className='c !mb-0 !py
 const A=window.A={};
 const S={tab:'home',mem:'gal',play:'games',g:'menu',cat:'Deep Talk',mo:null,gb:null,totCat:'Makanan 🍕',q:'',sr:0};
 const NAMES=['notes','memories','letters','wishlist','questions','hugs','songs','quiz'];
-let me=ls('kb_me'),cid=ls('kb_cid'),C=null,D={},ob={avatar:''},seen=new Set(),boot=Date.now();
+let me=ls('kb_me'),cid=ls('kb_cid'),C=null,D={},ob={avatar:''},seen=new Set(),boot=Date.now();window.tempMemFile=null;window.tempProfFile=null;
 NAMES.forEach(n=>D[n]=[]);
 let db;try{db=getFirestore(initializeApp(window.firebaseConfig))}catch(e){}
 const col=n=>collection(db,'couples',cid,n),cref=()=>doc(db,'couples',cid);
 const add=(n,o)=>addDoc(col(n),{from:me.slot,t:Date.now(),...o});
 const oSlot=()=>me.slot=='partner1'?'partner2':'partner1',M=()=>C[me.slot]||{},O=()=>C[oSlot()]||{},cn=()=>me.slot=='partner1'?1:2;
-const IC={home:'M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',chat:'M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-5.6A8 8 0 1 1 21 12z',mem:'M4 4h16v16H4zM4 16l5-5 4 4 3-3 4 4M9 9h.01',play:'M6 11h4M8 9v4M15 12h.01M18 10h.01M17.3 5H6.7a4 4 0 0 0-3.9 3.2l-1.3 6A3 3 0 0 0 4.4 18c.8 0 1.5-.4 2-1l1.4-1.8h8.4l1.4 1.8c.5.6 1.2 1 2 1a3 3 0 0 0 2.9-3.8l-1.3-6A4 4 0 0 0 17.3 5z',settings:'M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6',mic:'M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3zM19 10v1a7 7 0 0 1-14 0v-1M12 18v4',send:'M22 2L11 13M22 2l-7 20-4-9-9-4z',heart:'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z',trash:'M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6',x:'M18 6L6 18M6 6l12 12',search:'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3',dl:'M12 3v12M7 10l5 5 5-5M5 21h14',back:'M15 18l-6-6 6-6',img:'M12 5v14M5 12h14'};
+const IC={copy:'M8 7v-3a2 2 0 0 1 2 -2h7a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-2m-11 0h7a2 2 0 0 0 2 -2v-7a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v7a2 2 0 0 0 2 2z',home:'M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',chat:'M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-5.6A8 8 0 1 1 21 12z',mem:'M4 4h16v16H4zM4 16l5-5 4 4 3-3 4 4M9 9h.01',play:'M6 11h4M8 9v4M15 12h.01M18 10h.01M17.3 5H6.7a4 4 0 0 0-3.9 3.2l-1.3 6A3 3 0 0 0 4.4 18c.8 0 1.5-.4 2-1l1.4-1.8h8.4l1.4 1.8c.5.6 1.2 1 2 1a3 3 0 0 0 2.9-3.8l-1.3-6A4 4 0 0 0 17.3 5z',settings:'M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6',mic:'M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3zM19 10v1a7 7 0 0 1-14 0v-1M12 18v4',send:'M22 2L11 13M22 2l-7 20-4-9-9-4z',heart:'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z',trash:'M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6',x:'M18 6L6 18M6 6l12 12',search:'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3',dl:'M12 3v12M7 10l5 5 5-5M5 21h14',back:'M15 18l-6-6 6-6',img:'M12 5v14M5 12h14'};
 const ic=(n,s=20,f='none')=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="${f}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="${IC[n]}"/></svg>`;
 const THEME_BG={pink:'#f4f2fa'};
 function updateThemeColor(){const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=document.body.classList.contains('dark')?'#0e0b17':'#f4f2fa'}
@@ -82,7 +82,22 @@ async function compressImage(file,max=1024,q=.68){
   return {url,before:file.size,after:b.size,pct:Math.max(0,Math.round(100-b.size/file.size*100))}}
 function listen(){
   onSnapshot(cref(),s=>{C=s.data();if(!C){toast('Couple ga ketemu 🥺');return}render()});
-  NAMES.forEach(n=>onSnapshot(query(col(n),orderBy('t')),s=>{const oldLen=D[n].length;D[n]=s.docs.map(d=>({id:d.id,...d.data()}));if(n=='hugs')checkHug();if(n=='notes'&&D[n].length>oldLen){const last=D[n].at(-1);if(last&&last.from!=me.slot&&last.t>boot){showNotif(`Pesan dari ${C[oSlot()]?.name} 💬`,last.txt)}}render()}))}
+  NAMES.forEach(n=>{
+    const q = n=='notes' ? query(col(n),orderBy('t','desc'),limit(50)) : query(col(n),orderBy('t'));
+    onSnapshot(q,s=>{
+      const lastT = D[n].length ? D[n][D[n].length-1].t : 0;
+      D[n] = s.docs.map(d=>({id:d.id,...d.data()})).reverse();
+      const newT = D[n].length ? D[n][D[n].length-1].t : 0;
+      if(n=='hugs') checkHug();
+      if(n=='notes' && newT > lastT){
+        const last = D[n].at(-1);
+        if(last && last.from != me.slot && last.t > boot && !last.letter && !last.sticker){
+          showNotif(`Pesan dari ${C[oSlot()]?.name} 💬`, last.txt);
+        }
+      }
+      render();
+    })
+  })}
 const HE={hug:['🤗','Peluk terkirim! 🤗','Sayang ngirim peluk nih! 🤗'],kiss:['😘','Cium terkirim! 😘','Ada cium nyampe nih! 😘'],think:['💭','Terkirim: lagi mikirin dia 💭','Doi lagi mikirin kamu nih 💭']};
 function askNotif(){if(!("Notification" in window))return;if(Notification.permission==="default")Notification.requestPermission()}
 function showNotif(title,body){if(!("Notification" in window))return;if(Notification.permission==="granted"&&document.hidden){const n=new Notification(title,{body,icon:"/icon-192.png"});n.onclick=()=>{window.focus();n.close()}}}
@@ -104,9 +119,9 @@ function yearly(ds){if(!ds)return null;const b=new Date(ds),n=t0();let d=new Dat
 function monthly(ds){if(!ds)return null;const a=new Date(ds).getDate(),n=t0();let d=new Date(n.getFullYear(),n.getMonth(),a);if(d<n)d=new Date(n.getFullYear(),n.getMonth()+1,a);return Math.round((d-n)/864e5)}
 const tzT=p=>{try{return new Date().toLocaleTimeString('id',{timeZone:p.tz,hour:'2-digit',minute:'2-digit'}).replace('.',':')}catch(e){return '--:--'}};
 function tzDiff(){const a=M().tz,b=O().tz;if(!a||!b)return null;try{const f=z=>new Date(new Date().toLocaleString('en-US',{timeZone:z}));return Math.round((f(b)-f(a))/18e5)/2}catch(e){return null}}
-function cal(){const n=new Date(),y=n.getFullYear(),m=n.getMonth(),f=new Date(y,m,1).getDay(),L=new Date(y,m+1,0).getDate(),meet=C.nextMeetDate?new Date(C.nextMeetDate):null;
+function cal(){const n=new Date(),y=n.getFullYear(),m=n.getMonth(),f=new Date(y,m,1).getDay(),L=new Date(y,m+1,0).getDate(),meet=C.nextMeetDate?new Date(C.nextMeetDate):null,nc=nextCall();
   let h='<div class="grid grid-cols-7 text-center text-xs gap-1">'+['M','S','S','R','K','J','S'].map(x=>`<b class="mu">${x}</b>`).join('')+'<i></i>'.repeat(f);
-  for(let d=1;d<=L;d++){const dt=new Date(y,m,d),isM=meet&&dk(meet)==dk(dt),isC=C.call&&dt.getDay()==C.call.dow,t=d==n.getDate();
+  for(let d=1;d<=L;d++){const dt=new Date(y,m,d),isM=meet&&dk(meet)==dk(dt),isC=nc&&dk(nc)==dk(dt),t=d==n.getDate();
     h+=`<div class="py-1 rounded-full ${t?'b !p-0':''}" style="${isC&&!t?'background:var(--s2)':''}">${d}${isM?'<br>💖':isC?'<br><span style="font-size:.6rem">📞</span>':''}</div>`}return h+'</div>'}
 const greet=()=>{const h=new Date().getHours();return h<11?'Selamat pagi':h<15?'Selamat siang':h<18?'Selamat sore':'Selamat malam'};
 const cd=(l,v,e)=>`<div class="c !mb-0 text-center !p-2"><div class="text-[10px] mu font-semibold truncate">${l}</div><div class="dsp text-xl" style="color:var(--a)">${v}</div><div class="text-[9px] mu truncate">${e}</div></div>`;
@@ -141,7 +156,7 @@ function home(){
 function chat(){
   const q=(S.q||'').toLowerCase(),L=D.notes.filter(x=>!q||(x.txt||'').toLowerCase().includes(q));
   const n=L.map(x=>{const mine=x.from==me.slot,time=new Date(x.t).toLocaleTimeString('id',{hour:'2-digit',minute:'2-digit'}).replace('.',':'),rx=x.r&&(x.r.partner1||x.r.partner2);
-    const meta=`<div class="text-[10px] mu mt-1 flex gap-2 items-center px-1">${time}<button onclick="A.react('${x.id}',${!x.r?.[me.slot]})" style="color:${x.r?.[me.slot]?'#e5484d':'inherit'}">${rx?'❤️':'♡'}</button>${mine?`<button onclick="A.delMsg('${x.id}')">${ic('trash',12)}</button>`:''}</div>`;
+    const meta=`<div class="text-[10px] mu mt-1 flex gap-2 items-center px-1">${time}<button onclick="A.copyMsg('${x.id}')">${ic('copy',12)}</button><button onclick="A.react('${x.id}',${!x.r?.[me.slot]})" style="color:${x.r?.[me.slot]?'#e5484d':'inherit'}">${rx?'❤️':'♡'}</button>${mine?`<button onclick="A.delMsg('${x.id}')">${ic('trash',12)}</button>`:''}</div>`;
     const body=x.letter?`<div class="bub" style="background:#fff7e0;color:#5a4320;border:1.5px dashed #d9b45a"><b class="text-xs">💌 Surat dari ${esc(C[x.from]?.name)}</b><p class="whitespace-pre-wrap mt-1" style="font-family:Fraunces,serif;font-style:italic">${esc(x.txt)}</p></div>`
      :x.voice?`<div class="bub ${mine?'me':'ot'}"><audio controls src="${x.voice}" class="h-10 w-48 max-w-full"></audio></div>`
      :x.sticker?`<div class="bub ${mine?'me':'ot'} !bg-transparent !p-0 !border-none !shadow-none"><img src="${x.sticker}" class="w-32 h-32 object-contain drop-shadow-md"></div>`
@@ -151,15 +166,15 @@ function chat(){
   ${S.sr?`<input id="cs" class="i" placeholder="Cari pesan..." value="${esc(S.q)}" oninput="A.q(this.value)">`:''}
   <div id="chat-list" class="ns overflow-y-auto px-1" style="height:calc(100dvh - ${S.sr?330:280}px)">${n||'<div class="text-center mu mt-10"><div class="text-5xl mb-2 fl">💬</div>'+(q?'Tidak ada pesan yang cocok.':'Belum ada chat. Sapa doi dulu!')+'</div>'}</div>
   <div class="fixed left-1/2 -translate-x-1/2 w-[calc(100%-24px)] max-w-[406px] z-10" style="bottom:86px">
-   <div class="flex gap-2 mb-2 overflow-x-auto ns">${[['☀️ Pagi',"Good morning sayangkuuu ☀️"],['🌙 Malam','Good night sayang, mimpi indah ya 🌙'],['🥺 Kangen','Kangen bangettt 🥺']].map(([l,t])=>`<button class="ch shrink-0" onclick="A.gm('${t}')">${l}</button>`).join('')}<button class="ch shrink-0" onclick="A.letter()">💌 Surat</button>${['','penting','lucu','kangen'].map(t=>`<button class="ch shrink-0 ${(S.tag||'')==t?'on':''}" onclick="A.tag('${t}')">${t?'#'+t:'biasa'}</button>`).join('')}</div>
-   ${S.st?`<div class="c !mb-2 !p-2 overflow-x-auto flex gap-2 ns shadow-sm" style="max-height:100px;background:var(--s)">${STICKERS.map(s=>`<img src="${s}" class="w-14 h-14 object-contain cursor-pointer hover:scale-110 transition" onclick="A.sendSticker('${s}')">`).join('')}</div>`:''}
+   <div class="flex gap-2 mb-2 overflow-x-auto ns">${[['☀️ Pagi',"Good morning sayangkuuu ☀️"],['🌙 Malam','Good night sayang, mimpi indah ya 🌙'],['🥺 Kangen','Kangen bangettt 🥺']].map(([l,t])=>`<button class="ch shrink-0" onclick="A.gm('${t}')">${l}</button>`).join('')}<button class="ch shrink-0" onclick="A.letter()">💌 Surat</button><button class="ch shrink-0 !bg-purple-100 !text-purple-600 border-purple-200" onclick="A.aiSoftener()">🪄 Peredam</button><button class="ch shrink-0 !bg-purple-100 !text-purple-600 border-purple-200" onclick="A.aiIcebreaker()">✨ Topik</button><button class="ch shrink-0 !bg-purple-100 !text-purple-600 border-purple-200" onclick="A.aiGombalChat()">💌 Gombal</button><button class="ch shrink-0 !bg-purple-100 !text-purple-600 border-purple-200" onclick="A.aiTranslate()">🗣️ Terjemah</button>${['','penting','lucu','kangen'].map(t=>`<button class="ch shrink-0 ${(S.tag||'')==t?'on':''}" onclick="A.tag('${t}')">${t?'#'+t:'biasa'}</button>`).join('')}</div>
+   ${S.st?`<div class="c !mb-2 !p-2 overflow-x-auto flex gap-2 ns shadow-sm" style="max-height:100px;background:var(--s)">${[...STICKERS].sort((a,b)=>{const st=ls('kb_sticker_stats')||{};return (st[b]||0)-(st[a]||0)}).map(s=>`<img src="${s}" class="w-14 h-14 object-contain cursor-pointer hover:scale-110 transition" onclick="A.sendSticker('${s}')">`).join('')}</div>`:''}
    <div class="c !p-2 !mb-0 flex gap-2 items-center" style="box-shadow:0 8px 24px #0002"><button class="p-2 text-xl" onclick="A.toggleStickers()">😀</button><button id="rec-btn" class="p-2" onclick="A.toggleRec()" style="color:var(--a)">${ic('mic',22)}</button><input id="msg" class="flex-1 bg-transparent outline-none px-1" placeholder="Ketik pesan..." onkeydown="if(event.key==='Enter')A.msg()"><button id="send-btn" class="b !p-3 !rounded-full" onclick="A.msg()">${ic('send',18)}</button></div></div>`}
 function mem(){
   let b=seg('mem',[['gal','Galeri'],['cap','Kapsul'],['wl','Wishlist']]);
   if(S.mem=='gal'){
     b+=`<div class="c"><input id="cp" class="i" placeholder="Caption kenangannya...">
       <label class="flex flex-col items-center justify-center h-24 rounded-2xl cursor-pointer mb-3" style="border:2px dashed var(--a);color:var(--a)">${ic('img',26)}<span class="text-sm font-bold">Pilih foto baru</span><span class="text-[10px] mu truncate w-full text-center px-4" id="ph_name">Belum ada foto</span>
-      <input id="ph" type="file" accept="image/*" class="hidden" onchange="document.getElementById('ph_name').textContent=this.files[0]?.name||'Belum ada foto'"></label>
+      <input id="ph" type="file" accept="image/*" class="hidden" onchange="window.tempMemFile=this.files[0];document.getElementById('ph_name').textContent=this.files[0]?.name||'Belum ada foto'"></label>
       <button class="b w-full" onclick="A.upMem()">Upload kenangan</button></div>
     <div class="text-xs font-bold mu mb-2">${D.memories.length} kenangan</div><div class="mas">`;
     b+=[...D.memories].reverse().map(x=>`<div class="relative rounded-2xl overflow-hidden cursor-pointer" onclick="A.openMem('${x.id}')"><img src="${x.img}" class="w-full object-cover"><div class="absolute inset-0" style="background:linear-gradient(to top,#000b,transparent 55%)"></div>
@@ -202,7 +217,7 @@ const eq=x=>x.g.toLowerCase().trim()==x.a.toLowerCase().trim();
 function play(){
   let b=`<div class="flex gap-2 mb-4 overflow-x-auto ns">${[['games','🎮 Games'],['song','🎵 Lagu'],['tanya','✨ Tanya Ajaib']].map(([i,l])=>`<button class="ch shrink-0 ${S.play==i?'on':''}" onclick="A.sub('play','${i}')">${l}</button>`).join('')}</div>`;
   if(S.play=='games'){
-    if(!S.g||S.g=='menu'){b+=`<div class="grid grid-cols-2 gap-3">${[['tot','⚖️','This or That'],['tod','🎭','Truth / Dare'],['ttt','⭕','Tic Tac Toe'],['quiz','🎯','Kenal Aku?'],['spin','🎡','Spin Aktivitas'],['gombal','💌','Gombalan']].map(([id,e,t])=>`<button class="c !mb-0 flex flex-col items-center py-4" onclick="A.g('${id}')"><span class="text-3xl mb-1">${e}</span><b class="text-xs">${t}</b></button>`).join('')}</div>`}
+    if(!S.g||S.g=='menu'){b+=`<div class="grid grid-cols-2 gap-3">${[['tot','⚖️','This or That'],['tod','🎭','Truth / Dare'],['ttt','⭕','Tic Tac Toe'],['quiz','🎯','Kenal Aku?'],['spin','🎡','Spin Aktivitas'],['gombal','💌','Gombalan'],['story','📖','Masa Depan']].map(([id,e,t])=>`<button class="c !mb-0 flex flex-col items-center py-4" onclick="A.g('${id}')"><span class="text-3xl mb-1">${e}</span><b class="text-xs">${t}</b></button>`).join('')}</div>`}
     else{b+=`<button class="ch mb-3 inline-flex items-center gap-1" onclick="A.g('menu')">${ic('back',14)} Menu game</button><div class="c text-center pi">`;
       if(S.g=='tot'){const t=C.tot;if(!t||!t.q){b+=`<div class="text-5xl mb-3 fl">⚖️</div><p class="dsp text-lg mb-3">Pilih kategori</p><div class="flex gap-2 flex-wrap justify-center mb-4">${Object.keys(TOT_DB).map(c=>`<button class="ch ${S.totCat==c?'on':''}" onclick="A.setTotCat('${c}')">${c}</button>`).join('')}</div><div class="flex flex-col gap-2"><button class="b" onclick="A.startTot(0)">Mulai (lokal)</button><button class="b g" onclick="A.startTot(1)">🤖 Mulai pakai AI</button></div>`}
         else{const mc=t[me.slot=='partner1'?'p1':'p2'],oc=t[me.slot=='partner1'?'p2':'p1'],q=t.q;b+=`<p class="mb-3 text-sm font-bold mu">Mendingan mana?</p><div class="grid grid-cols-2 gap-2">${['A','B'].map((k,i)=>`<button class="b !py-6 text-lg ${mc&&mc!=k?'g !opacity-50':''}" ${mc?'disabled':`onclick="A.pickTot('${k}')"`}>${q[i]}</button>`).join('')}</div>`;
@@ -224,10 +239,11 @@ function play(){
         <div class="flex items-end justify-end gap-2 mt-4 min-h-[44px]">${ch&&ch.from===me.slot?`<div class="bub me pi">${esc(ch.text)}</div>`:''}${av(C[me.slot],40)}</div>
         <div class="flex gap-2 mt-2"><input id="ttt_msg" class="i !mb-0 flex-1" placeholder="Ketik komentar..." onkeydown="if(event.key==='Enter')A.sendTttMsg()"><button class="b" onclick="A.sendTttMsg()">Kirim</button></div>`}
       b+='</div>';
+      if(S.g=='story')b=b.replace(/<\/div>$/,'')+`<div class="text-5xl mb-2">📖</div><p class="dsp text-lg mb-2">Masa Depan Kita</p><div class="flex gap-2 flex-wrap justify-center mb-4">${['Rumah 🏡','Liburan ✈️','5 Tahun Lagi ⏳','Pernikahan 💍'].map(c=>`<button class="ch ${S.storyTheme==c?'on':'bg-white/70'}" onclick="A.setStoryTheme('${c}')">${c}</button>`).join('')}</div><button class="b w-full !bg-purple-500 mb-4" onclick="A.generateStory()">✨ Tulis Cerita AI</button>${C.story?`<div class="rounded-2xl p-4 text-left" style="background:var(--s2);font-family:Fraunces,serif;font-style:italic;max-height:40vh;overflow-y:auto"><div class="flex justify-between items-start mb-2"><h3 class="font-bold not-italic" style="color:var(--a)">${esc(C.story.title)}</h3><button onclick="A.delStory()" class="text-red-400 text-sm hover:scale-110 transition">🗑️</button></div><p class="whitespace-pre-wrap leading-relaxed text-sm">${esc(C.story.text)}</p></div>`:'<p class="text-sm mu">Pilih tema dan klik tulis cerita.</p>'}</div>`;
       if(S.g=='quiz')b+=`<div class="c"><b>Bikin pertanyaan buat doi</b><input id="qq" class="i mt-2" placeholder="Makanan favorit aku apa?"><input id="qa" class="i" placeholder="Jawaban yang bener"><button class="b w-full" onclick="A.addQ()">Kirim 🎯</button></div>`+
         D.quiz.map(x=>x.from==me.slot?`<div class="c text-sm"><div class="font-bold mb-1" style="color:var(--a)">Kamu nanya: ${esc(x.q)}</div>Tebakan doi: ${x.g?`<span style="color:${eq(x)?'#3fa66b':'#e5484d'}" class="font-bold">${esc(x.g)}</span> ${eq(x)?'✅':'❌ (jawab: '+esc(x.a)+')'}`:'<i class="mu">belum jawab</i>'}</div>`
         :`<div class="c text-sm"><div class="font-bold mb-1">${esc(x.q)}</div>${x.g?`Tebakanmu: <span style="color:${eq(x)?'#3fa66b':'#e5484d'}" class="font-bold">${esc(x.g)}</span> ${eq(x)?'✅':'❌ (jawab: '+esc(x.a)+')'}`:`<div class="flex gap-2 mt-2"><input id="g${x.id}" class="i !mb-0" placeholder="Tebakanmu..."><button class="b" onclick="A.guess('${x.id}')">Tebak</button></div>`}</div>`).join('');
-      if(S.g=='spin')b=b.replace(/<\/div>$/,'')+`<div class="text-7xl my-4 transition-transform duration-300" id="sp-wheel">🎡</div><p class="dsp text-xl min-h-[3rem]" style="color:var(--a)" id="sp">${S.sp||'Hari ini ngapain ya?'}</p><button class="b w-full mt-3" onclick="A.spin()">Putar roda!</button></div>`;
+      if(S.g=='spin')b=b.replace(/<\/div>$/,'')+`<div class="text-7xl my-4 transition-transform duration-300" id="sp-wheel">🎡</div><p class="dsp text-xl min-h-[3rem]" style="color:var(--a)" id="sp">${S.sp||'Hari ini ngapain ya?'}</p><div class="flex gap-2 mt-3"><button class="b flex-1" onclick="A.spin()">Putar roda!</button><button class="b g flex-1" onclick="A.aiSpin()">✨ AI Spin</button></div></div>`;
       if(S.g=='gombal')b=b.replace(/<\/div>$/,'')+`<div class="text-5xl mb-3 fl">💌</div><p class="dsp text-xl leading-snug min-h-[4rem]" style="color:var(--a)" id="gb">${esc(S.gb||'Tekan tombol di bawah buat minta gombalan!')}</p><div class="flex gap-2 mt-4"><button class="b g flex-1" onclick="A.gombal()">Ganti (lokal)</button><button class="b flex-1" onclick="A.aiGombal()">✨ AI gombal</button></div></div>`}}
   if(S.play=='song')b+=`<div class="c"><input id="su" class="i" placeholder="Link Spotify / YouTube"><input id="sc" class="i" placeholder="Lagu ini ngingetin aku sama kamu..."><button class="b w-full" onclick="A.addSong()">Kirim lagu 🎵</button></div>`+
     [...D.songs].reverse().map(x=>`<div class="c"><iframe src="${x.embed}" class="w-full rounded-2xl" height="${x.embed.includes('spotify')?152:200}" allow="encrypted-media;autoplay" loading="lazy"></iframe><p class="text-sm mt-2"><b style="color:var(--a)">${esc(C[x.from]?.name)}</b>: <span class="mu">${esc(x.cap)}</span></p></div>`).join('');
@@ -239,7 +255,7 @@ function play(){
 function settings(){const m=M(),ai=ls('kb_ai')||{prov:'openai',key:'',model:'gpt-4o-mini',base:'',prompt:'Buat 1 pertanyaan {kategori} yang romantis, santai, bahasa Indonesia Gen Z untuk pasangan LDR. Balas HANYA pertanyaannya.'};
   const sec=(t,b)=>`<div class="c"><b class="dsp text-base block mb-2">${t}</b>${b}</div>`;
   return `${head('Pengaturan')}
-  ${sec('Profil kamu',`<input id="sn" class="i" value="${esc(m.name)}" placeholder="Nama panggilan"><input id="sci" class="i" value="${esc(C['city'+cn()])}" placeholder="Kotamu"><label class="flex items-center justify-center gap-2 py-3 rounded-2xl cursor-pointer mb-2" style="border:2px dashed var(--a);color:var(--a)">${ic('img',18)}<span class="font-bold text-sm">Pilih foto profil baru</span><input id="sa" type="file" accept="image/*" class="hidden"></label><button class="b w-full" onclick="A.saveProf()">Simpan profil</button>`)}
+  ${sec('Profil kamu',`<input id="sn" class="i" value="${esc(m.name)}" placeholder="Nama panggilan"><input id="sci" class="i" value="${esc(C['city'+cn()])}" placeholder="Kotamu"><label class="flex items-center justify-center gap-2 py-3 rounded-2xl cursor-pointer mb-2" style="border:2px dashed var(--a);color:var(--a)">${ic('img',18)}<span class="font-bold text-sm">Pilih foto profil baru</span><input id="sa" type="file" accept="image/*" class="hidden" onchange="window.tempProfFile=this.files[0]"></label><button class="b w-full" onclick="A.saveProf()">Simpan profil</button>`)}
   ${sec('Preferensi',`<label class="lb">Nama aplikasi (tampil di atas)</label><div class="flex gap-2 mb-3"><input id="s_app_title" class="i !mb-0" value="${esc(C.appTitle||'Being Eldeer')}"><button class="b" onclick="A.saveAppTitle()">Set</button></div>
     <label class="flex items-center justify-between py-2"><div><b class="text-sm">Efek getar & confetti</b><div class="text-[11px] mu">Matikan jika HP terasa lambat</div></div><span><input type="checkbox" class="sr-only" ${ls('kb_vibe')!==false?'checked':''} onchange="A.toggleVibe(this.checked)"><span class="tg block"></span></span></label>`)}
   ${sec('Tanggal penting',`<label class="lb">Jadian</label><input id="sd1" type="date" class="i" value="${C.anniversaryDate||''}"><label class="lb">Ketemu lagi</label><input id="sd2" type="date" class="i" value="${C.nextMeetDate||''}"><label class="lb">Ultah pasangan</label><input id="sd3" type="date" class="i" value="${C.bday||''}"><button class="b w-full" onclick="A.saveDates()">Simpan tanggal</button>`)}
@@ -305,11 +321,27 @@ Object.assign(A,{
       setTimeout(()=>{if(window.mediaRec&&window.mediaRec.state=='recording'){toast('Batas maksimal 15 detik ⏱️');window.mediaRec.stop()}},15000)
     }catch(e){toast('Mikrofon ditolak/gagal 🥺')}},
   resetRecUI:()=>{window.mediaRec=null;render()},
-  toggleStickers:()=>{S.st=!S.st;render()},sendSticker:async url=>{await add('notes',{sticker:url,txt:'Stiker'});S.st=false;render()},msg:async()=>{const t=$('#msg').value.trim();if(!t)return;$('#msg').value='';await add('notes',{txt:t,tag:S.tag||''})},
-  delMsg:async id=>{if(confirm('Hapus pesan ini? 🗑️'))await deleteDoc(doc(db,'couples',cid,'notes',id))},
+  toggleStickers:()=>{S.st=!S.st;render()},sendSticker:async url=>{const st=ls('kb_sticker_stats')||{};st[url]=(st[url]||0)+1;ls('kb_sticker_stats',st);await add('notes',{sticker:url,txt:'Stiker'});S.st=false;render()},aiSoftener:async()=>{const t=$('#msg').value.trim();if(!t)return toast('Ketik draf pesanmu dulu di kolom chat 💬');toast('AI lagi merapikan pesan... ✨');const res=await callAI(`Ubah pesan berikut menjadi lebih lembut, komunikatif, dan tidak menyakiti hati pasangan LDR (tetap jujur): "${t}". Balas HANYA kalimat perbaikannya saja, tanpa tanda kutip.`,t);$('#msg').value=res},aiIcebreaker:async()=>{toast('AI lagi nyari topik... ✨');const res=await callAI('Buat 1 pertanyaan deep talk atau receh yang menarik untuk ditanyakan ke pasangan LDR. Balas HANYA pertanyaannya saja.', 'Kalau kita bisa teleportasi sekarang, kamu mau ke mana?');$('#msg').value=res},aiGombalChat:async()=>{const t=$('#msg').value.trim()||'romantis';toast('AI lagi nyiapin gombalan... ✨');const res=await callAI(`Buat 1 gombalan bahasa Indonesia yang lucu/romantis berdasarkan kata kunci: "${t}". Balas HANYA gombalannya saja.`, 'Kamu itu kayak wifi, sinyalnya selalu nyangkut di hatiku.');$('#msg').value=res},aiTranslate:async()=>{const t=$('#msg').value.trim();if(!t)return toast('Paste/ketik chat doi di kolom ketik dulu');toast('AI lagi menerjemahkan maksud doi... ✨');const res=await callAI(`Tolong jelaskan maksud terselubung atau perasaan dari pesan pasangan ini: "${t}". Jawab singkat, empatik, 1-2 kalimat bahasa Indonesia.`, 'Dia mungkin cuma capek dan butuh perhatian lebih.');$('#msg').value=res},msg:async()=>{const t=$('#msg').value.trim();if(!t)return;$('#msg').value='';await add('notes',{txt:t,tag:S.tag||''})},
+  delMsg:async id=>{if(confirm('Hapus pesan ini? 🗑️'))await deleteDoc(doc(db,'couples',cid,'notes',id))},copyMsg:id=>{const m=D.notes.find(n=>n.id===id);if(m&&m.txt){navigator.clipboard.writeText(m.txt).then(()=>toast('Teks disalin! 📋')).catch(()=>toast('Gagal menyalin 🥺'))}},
   gm:async t=>{await add('notes',{txt:t,gm:1});toast('Terkirim! 🔥')},
   letter:async()=>{const t=prompt('Tulis surat panjangmu 💌');if(t)await add('notes',{txt:t,letter:1})},
-  upMem:async()=>{const f=$('#ph').files[0];if(!f)return toast('Pilih foto dulu sayang');toast('Sabar ya sayang lagi nyiapin...');const r=await compressImage(f);await add('memories',{img:r.url,cap:$('#cp').value,size:r.after,origSize:r.before});toast(`Dari ${kb(r.before)} jadi ${kb(r.after)}, hemat ${r.pct}% tetep jernih! ✨`)},
+  upMem:async()=>{const fileInput=$('#ph');const f=window.tempMemFile;if(!f)return toast('Pilih foto dulu sayang 🥺');
+    if(!f.type.startsWith('image/'))return toast('Format file harus berupa gambar ya!');
+    toast('Sabar ya sayang, foto lagi diproses... ⏳');
+    try{
+      const r=await compressImage(f);
+      if(r.after > 900000) throw new Error('Foto masih terlalu besar (di atas 900KB). Coba pilih foto lain ya.');
+      await add('memories',{img:r.url,cap:$('#cp').value||'',size:r.after,origSize:r.before});
+      fileInput.value='';
+      const phName=$('#ph_name');if(phName)phName.textContent='Belum ada foto';
+      const cpVal=$('#cp');if(cpVal)cpVal.value='';
+      window.tempMemFile=null;
+      toast(`Berhasil! ${kb(r.before)} ➔ ${kb(r.after)} (Hemat ${r.pct}%) ✨`);
+    }catch(e){
+      console.error(e);
+      toast(e.message||'Gagal upload. Cek koneksi internetmu 🥺');
+    }
+  },
   delMem:async id=>{if(confirm('Hapus kenangan ini? 🥺')){await deleteDoc(doc(db,'couples',cid,'memories',id));toast('Kenangan dihapus 🗑️')}},
   openMem:id=>{S.openMem=id;render()},closeMem:()=>{S.openMem=null;render()},
   saveCap:async id=>{await updateDoc(doc(db,'couples',cid,'memories',id),{cap:$('#edit_cap').value});S.openMem=null;toast('Caption diupdate! 📝')},
@@ -327,7 +359,7 @@ Object.assign(A,{
   takeDare:()=>{confetti({particleCount:40,colors:['#ff0000','#ff7e5f']});updateDoc(cref(),{'tod.dare':rnd(DARE),'tod.phase':'dared'})},
   nextTodTurn:()=>{updateDoc(cref(),{tod:{phase:'question',turn:oSlot(),q:rnd(TRUTH)}})},
   endTodGame:()=>{if(confirm('Akhiri permainan Truth or Dare?'))updateDoc(cref(),{tod:null})},
-  spin:()=>{let n=0;const i=setInterval(()=>{const s=$('#sp');if(s)s.textContent=rnd(SPIN);const w=$('#sp-wheel');if(w)w.style.transform='rotate('+n*45+'deg)';if(++n>12){clearInterval(i);S.sp=s?.textContent;confetti({particleCount:60,spread:60})}},100)},
+  spin:()=>{let n=0;const i=setInterval(()=>{const s=$('#sp');if(s)s.textContent=rnd(SPIN);const w=$('#sp-wheel');if(w)w.style.transform='rotate('+n*45+'deg)';if(++n>12){clearInterval(i);S.sp=s?.textContent;confetti({particleCount:60,spread:60})}},100)},aiSpin:async()=>{toast('AI mikir... ✨');const f=rnd(SPIN);const p='Buat 1 ide aktivitas/kegiatan seru, romantis, atau receh yang bisa dilakukan bareng pasangan LDR (misal video call, main game, dll) dalam bahasa Indonesia. Balas HANYA idenya saja, maksimal 10 kata.';S.sp=await callAI(p,f);render()},
   gombal:()=>{S.gb=rnd(GOMBAL);render()},
   aiGombal:async()=>{toast('AI mikir... ✨');S.gb=await callAI('Buat 1 gombalan romantis/lucu bahasa Indonesia untuk pacar, balas HANYA gombalannya.',rnd(GOMBAL));render()},
   mv:async i=>{const t=C.ttt||{b:'---------',turn:'partner1'};if(t.turn!=me.slot){toast('Bukan giliranmu sayang 🥺');return}if(t.b[i]!='-')return;const b=[...t.b];b[i]=me.slot=='partner1'?'X':'O';const nb=b.join(''),w=LINES.find(l=>nb[l[0]]!='-'&&nb[l[0]]==nb[l[1]]&&nb[l[0]]==nb[l[2]]);const u={ttt:{b:nb,turn:(w||!nb.includes('-'))?'done':oSlot()}};if(w)u[`tttScore.${me.slot}`]=(C.tttScore?.[me.slot]||0)+1;await updateDoc(cref(),u)},
@@ -340,11 +372,11 @@ Object.assign(A,{
     if(u.includes('spotify.com'))e=u.split('?')[0].replace('open.spotify.com/','open.spotify.com/embed/');
     else{const m=u.match(/(?:youtu\.be\/|v=|shorts\/)([\w-]{11})/);if(m)e='https://www.youtube.com/embed/'+m[1]}
     if(!e)return toast('Link-nya ga kebaca sayang 🥺');await add('songs',{embed:e,cap:$('#sc').value||'Lagu ini ngingetin aku sama kamu'})},
-  ask:async()=>{toast('AI lagi mikir... ✨');await add('questions',{q:await generateQuestion(S.cat),cat:S.cat,fav:false,ans:{}})},
+  ask:async()=>{toast('AI lagi mikir... ✨');await add('questions',{q:await generateQuestion(S.cat),cat:S.cat,fav:false,ans:{}})},setStoryTheme:c=>{S.storyTheme=c;render()},generateStory:async()=>{toast('AI lagi nulis cerita... ✨');const p=`Buatkan 1 cerita pendek romantis (3 paragraf) tentang masa depan pasangan LDR bernama ${M().name} dan ${O().name} dengan tema ${S.storyTheme||'Rumah Impian'}. Bahasa Indonesia santai dan manis. Format wajib: "Judul Cerita|Isi Cerita".`;const res=await callAI(p,'Cerita Masa Depan|Di suatu hari nanti, kita akan tinggal bersama dan bahagia selamanya.');const parts=res.split('|');const title=parts.length>1?parts[0].trim():'Cerita Masa Depan';const text=parts.length>1?parts[1].trim():res;await updateDoc(cref(),{story:{title,text,date:Date.now()}})},delStory:async()=>{if(confirm('Hapus cerita ini? 🥺')){await updateDoc(cref(),{story:null});toast('Cerita dihapus 🗑️')}},
   fav:(id,v)=>updateDoc(doc(db,'couples',cid,'questions',id),{fav:v}),
   delQ:async id=>{if(confirm('Hapus pertanyaan ini? 🥺')){await deleteDoc(doc(db,'couples',cid,'questions',id));toast('Pertanyaan dihapus 🗑️')}},
   ans:id=>updateDoc(doc(db,'couples',cid,'questions',id),{['ans.'+me.slot]:$('#a'+id).value}),
-  saveProf:async()=>{const u={[me.slot+'.name']:$('#sn').value,['city'+cn()]:$('#sci').value},f=$('#sa').files[0];if(f)u[me.slot+'.avatar']=(await compressImage(f,256,.7)).url;await updateDoc(cref(),u);toast('Berhasil sayang! 💕')},
+  saveProf:async()=>{const u={[me.slot+'.name']:$('#sn').value,['city'+cn()]:$('#sci').value},f=window.tempProfFile;if(f)u[me.slot+'.avatar']=(await compressImage(f,256,.7)).url;await updateDoc(cref(),u);window.tempProfFile=null;toast('Berhasil sayang! 💕')},
   saveAppTitle:async()=>{await updateDoc(cref(),{appTitle:$('#s_app_title').value});toast('Nama aplikasi diupdate! ✨')},
   toggleVibe:v=>{ls('kb_vibe',v);toast(v?'Efek getar dinyalakan 📳':'Efek getar dimatikan 🔕')},
   saveDates:async()=>{await updateDoc(cref(),{anniversaryDate:$('#sd1').value,nextMeetDate:$('#sd2').value,bday:$('#sd3').value});toast('Tanggalnya udah masuk! 🗓️')},
